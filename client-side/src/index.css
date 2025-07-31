@@ -1,0 +1,191 @@
+.header {
+  background-color: hsl(236, 94%, 50%);
+  color: #083dec;
+  padding: 0.5rem 1rem;
+}
+span{
+  width: 40px;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 20px;
+
+
+}
+.social-icons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 10px;
+}
+
+.social-icons a {
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: #0077b5; /* or pick platform colors */
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.menu-toggle {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: none;
+}
+
+.nav-bar-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-bar-list li a {
+  color: white;
+  text-decoration: none;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-bar-list {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .nav-bar-list.open {
+    display: flex;
+  }
+
+  .nav-bar-list ul {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+.donate{
+  border: #333;
+  padding: 2px;
+}
+#man{
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgb(236, 229, 219);
+  border-color: rgb(255, 228, 196);
+}
+#contact{
+ grid-row: inherit;
+
+}
+#social{
+  grid-row: inherit;
+  grid-column: inherit;
+}
+/*   this the progress file */
+/* Animation *//* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out both;
+}
+
+/* Step indicator base style */
+.step-circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 2px solid #d3af35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  color: #d3af35;
+  font-weight: bold;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.step-circle.filled {
+  background-color: #d3af35;
+  color: white;
+}
+
+.step-label {
+  margin-left: 0.5rem;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.step-line {
+  width: 2rem;
+  height: 2px;
+  background-color: #d1d5db; /* gray-300 */
+  margin: 0 0.5rem;
+}
+
+.step-line.active {
+  background-color: #d3af35;
+}
+/* for progress */
+/* Optional: Custom pulse animation for "Processing" step */
+@keyframes softPulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.animate-pulse {
+  animation: softPulse 1.5s infinite;
+}
+
+/* Optional: transition for buttons */
+.btn-transition {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* this is reciept page  */
+.recieptPage{
+  background-color: antiquewhite;
+  text-align: center;
+  justify-content: space-between;
+}
+/* this is home page  */
+.home{
+  background-image:url("../../src/assets/asre.png");
+}
