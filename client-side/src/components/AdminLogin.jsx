@@ -10,51 +10,47 @@ function AdminLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    
-    try {
-      const requestBody = JSON.stringify({ username, password });
-      console.log('Request body:', requestBody);
+ const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
+  setIsLoading(true);
 
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: requestBody,
-      });
+  const requestBody = JSON.stringify({ username, password });
 
-      console.log('Response status:', res.status);
+  try {
+    const res = await fetch('https://asremenaapp.onrender.com/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: requestBody,
+    });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || 
-          `Login failed with status ${res.status}`
-        );
-      }
+    const data = await res.json();
 
-      const data = await res.json();
-      console.log('Response data:', data);
-
-      if (!data.user || !data.user.isAdmin) {
-        throw new Error('Access denied: Admin privileges required');
-      }
-
-      localStorage.setItem('adminToken', data.token);
-      localStorage.setItem('adminUser', JSON.stringify(data.user));
-      
-      navigate('/admin-dashboard');
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      // Show backend-provided error message if available
+      throw new Error(data.message || 'Login failed. Please try again.');
     }
-  };
+
+    // Role check for admin access
+    if (!data.user || data.user.role !== 'admin') {
+      throw new Error('Access denied: Admin privileges required.');
+    }
+
+    // Save token + user info
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    // Redirect to admin dashboard
+    navigate('/admin-dashboard');
+
+  } catch (err) {
+    // Log to console for debugging AND show in UI
+    console.error('Login error:', err.message);
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div style={styles.container}>
