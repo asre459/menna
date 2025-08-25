@@ -1,28 +1,22 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
+
 const donationRoutes = require('./routes/donationRoutes');
 const partnerRoutes = require('./routes/partners');
-const contactRoutes = require('./routes/contact'); // Only include if implemented
-const authRoutes = require('./routes/auth'); // Optional, if you have authenticatio
+const contactRoutes = require('./routes/contact');
+const authRoutes = require('./routes/auth');
+
 const app = express();
 const __dirname1 = path.resolve();
-const path = require('path');
+
 // --- CORS setup ---
 const allowedOrigins = [
   process.env.FRONTEND_URL, 
   'http://localhost:5173'
 ];
-// Serve React frontend (after API routes)
-
-// Serve static frontend files
-app.use(express.static(path.join(__dirname1, "/client/dist")));
-
-// Catch-all: send index.html for SPA routes
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname1, "client", "dist", "index.html"));
-});
 
 app.use(cors({
   origin: function(origin, callback) {
@@ -32,31 +26,37 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PATCH'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
+// Handle preflight requests
+app.options('*', cors());
+
+// --- Body parser ---
 app.use(express.json());
 
-// --- Routes ---
+// --- API Routes ---
 app.use('/api/donations', donationRoutes);
 app.use('/api/partners', partnerRoutes);
-app.use('/api/contact', contactRoutes); // Optional
-app.use('/api/auth', authRoutes); // Optional, if you have authentication
+app.use('/api/contact', contactRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/media', require('./routes/media'));
-app.use('/api/admin', require('./routes/admin')); // Admin routes
+app.use('/api/admin', require('./routes/admin'));
 
-// Serve static frontend files
+// --- Serve React frontend ---
 app.use(express.static(path.join(__dirname1, "/client/dist")));
-
-// Catch-all: send index.html for SPA routes
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname1, "client", "dist", "index.html"));
 });
+
 // --- MongoDB connection ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
-    app.listen(process.env.PORT, () => {console.log(`🚀 Server running on http://localhost:${process.env.PORT}`); });
+    app.listen(process.env.PORT, () => {
+      console.log(`🚀 Server running on port ${process.env.PORT}`);
+    });
   })
   .catch(err => console.error('❌ MongoDB connection error:', err));
