@@ -46,9 +46,9 @@ app.use('/api/media', require('./routes/media'));
 app.use('/api/admin', require('./routes/admin'));
 
 // --- Serve React frontend ---
-app.use(express.static(path.join(__dirname1, "/client/dist")));
+app.use(express.static(path.join(__dirname1, "/client-side/dist")));
 app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname1, "client", "dist", "index.html"));
+  res.sendFile(path.resolve(__dirname1, "client-side", "dist", "index.html"));
 });
 
 // --- MongoDB connection ---
