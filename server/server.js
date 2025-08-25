@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
+// const path = require('path');
 require('dotenv').config();
 
 const donationRoutes = require('./routes/donationRoutes');
@@ -12,7 +12,7 @@ const mediaRoutes = require('./routes/media');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
-const __dirname1 = path.resolve();
+
 
 // --- CORS setup ---
 const allowedOrigins = [
@@ -34,7 +34,7 @@ app.use(cors({
 }));
 
 // Handle preflight requests
-app.options('*', cors());
+// app.options('*', cors());
 
 // --- Body parser ---
 app.use(express.json());
@@ -47,13 +47,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/admin', adminRoutes);
 
-// --- Serve React frontend ---
-const clientDistPath = path.join(__dirname1, 'client-side', 'dist');
-app.use(express.static(clientDistPath));
 
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(clientDistPath, 'index.html'));
-});
 
 // --- MongoDB connection ---
 mongoose.connect(process.env.MONGO_URI)
