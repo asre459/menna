@@ -16,7 +16,7 @@ const app = express();
 
 // --- CORS setup ---
 const allowedOrigins = [
-  process.env.FRONTEND_URL,  // e.g., https://asremannas.onrender.com
+  'https://asremannas.onrender.com',  // e.g., https://asremannas.onrender.com
   'http://localhost:5173'
 ];
 
