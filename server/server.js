@@ -1,17 +1,25 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
+
 const donationRoutes = require('./routes/donationRoutes');
+const authRoutes = require('./routes/auth');
 const partnerRoutes = require('./routes/partners');
-const contactRoutes = require('./routes/contact'); // Only include if implemented
-const authRoutes = require('./routes/auth'); // Optional, if you have authenticatio
+const contactRoutes = require('./routes/contact');
+const mediaRoutes = require('./routes/media');
+const adminRoutes = require('./routes/admin');
+
 const app = express();
+const __dirname1 = path.resolve();
+
 // --- CORS setup ---
 const allowedOrigins = [
-  process.env.FRONTEND_URL, 
+  process.env.FRONTEND_URL,  // e.g., https://asremannas.onrender.com
   'http://localhost:5173'
 ];
+
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -20,25 +28,38 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PATCH'],
+  methods: ['GET','POST','PATCH','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
   credentials: true
 }));
 
+// Handle preflight requests
+app.options('*', cors());
+
+// --- Body parser ---
 app.use(express.json());
 
-// --- Routes ---
+// --- API Routes ---
 app.use('/api/donations', donationRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/partners', partnerRoutes);
-app.use('/api/contact', contactRoutes); // Optional
-app.use('/api/auth', authRoutes); // Optional, if you have authentication
-app.use('/api/media', require('./routes/media'));
-app.use('/api/admin', require('./routes/admin')); // Admin routes
+app.use('/api/contact', contactRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/admin', adminRoutes);
 
+// --- Serve React frontend ---
+const clientDistPath = path.join(__dirname1, 'client-side', 'dist');
+app.use(express.static(clientDistPath));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(clientDistPath, 'index.html'));
+});
 
 // --- MongoDB connection ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
-    app.listen(process.env.PORT, () => {console.log(`🚀 Server running on http://localhost:${process.env.PORT}`); });
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
   })
   .catch(err => console.error('❌ MongoDB connection error:', err));
