@@ -7,15 +7,11 @@ const partnerRoutes = require('./routes/partners');
 const contactRoutes = require('./routes/contact'); // Only include if implemented
 const authRoutes = require('./routes/auth'); // Optional, if you have authenticatio
 const app = express();
-const path = require('path');
-
-const __dirname1 = path.resolve();
 // --- CORS setup ---
 const allowedOrigins = [
   process.env.FRONTEND_URL, 
   'http://localhost:5173'
 ];
-
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -38,13 +34,7 @@ app.use('/api/auth', authRoutes); // Optional, if you have authentication
 app.use('/api/media', require('./routes/media'));
 app.use('/api/admin', require('./routes/admin')); // Admin routes
 
-// Serve static frontend files
-app.use(express.static(path.join(__dirname1, "/client-side/dist")));
 
-// Catch-all: send index.html for SPA routes
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname1, "client-side", "dist", "index.html"));
-});
 // --- MongoDB connection ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
