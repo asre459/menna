@@ -137,6 +137,7 @@ const ArifPay = require('arifpay-express-plugin');
 const crypto = require('crypto');
 const router = express.Router();
 const Donation = require('../models/Donation');
+const auth = require('../middleware/auth');
 
 // Initialize ArifPay with API Key from .env
 const arifpay = new ArifPay(process.env.ARIFPAY_API_KEY);
