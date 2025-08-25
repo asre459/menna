@@ -5,7 +5,7 @@ function SantimPayStep1({ onNext, setPartner }) {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    fetch('https://asremenaapp.onrender.com/api/partners')
+    fetch('https://menna.onrender.com/api/partners')
       .then((res) => res.json())
       .then((data) => setPartners(data.partners))
       .catch(console.error);

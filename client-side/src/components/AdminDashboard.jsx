@@ -142,13 +142,13 @@ function AdminDashboard() {
         };
 
         const [donationsRes, mediaRes, usersRes] = await Promise.all([
-          fetch('https://asremenaapp.onrender.com/api/admin/donations',
+          fetch('https://menna.onrender.com/api/admin/donations',
              { headers }
             ),  
-            fetch('https://asremenaapp.onrender.com/api/admin/media',
+            fetch('https://menna.onrender.com/api/admin/media',
              { headers }
             ), 
-             fetch('https://asremenaapp.onrender.com/api/admin/users',
+             fetch('https://menna.onrender.com/api/admin/users',
              { headers }
             ),
           // fetch(`${API_BASE_URL}/Admin/media`,

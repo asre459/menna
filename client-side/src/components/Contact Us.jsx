@@ -19,7 +19,7 @@ const ContactUs = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("https://asremenaapp.onrender.com/api/contact", {
+      const res = await fetch("https://menna.onrender.com/api/contact", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

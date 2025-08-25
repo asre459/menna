@@ -22,7 +22,7 @@ function Donate() {
     setLoading(true);
 
     try {
-      const response = await fetch('https://asremenaapp.onrender.com/api/donations/met', {
+      const response = await fetch('https://menna.onrender.com/api/donations/met', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, contact, amount: finalAmount}),

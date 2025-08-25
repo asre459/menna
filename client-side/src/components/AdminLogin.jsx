@@ -18,7 +18,7 @@ function AdminLogin() {
   const requestBody = JSON.stringify({ username, password });
 
   try {
-    const res = await fetch('https://asremenaapp.onrender.com/api/auth/login', {
+    const res = await fetch('https://menna.onrender.com/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: requestBody,

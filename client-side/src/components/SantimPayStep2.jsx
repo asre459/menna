@@ -12,7 +12,7 @@ function SantimPayStep2({ partner, onNext }) {
 
     setLoading(true);
     try {
-      const res = await fetch('https://asremenaapp.onrender.com/api/partners/validate', {
+      const res = await fetch('https://menna.onrender.com/api/partners/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: partner.id, inputValue: input }),
