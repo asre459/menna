@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaDonate, FaImages, FaVideo, FaChartLine, FaSignOutAlt,FaFileAlt,FaTrash,FaCheck,FaTimes} from 'react-icons/fa';
-// const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { FaUsers, FaDonate, FaImages, FaVideo, FaChartLine, FaSignOutAlt, FaFileAlt, FaTrash, FaCheck, FaTimes } from 'react-icons/fa';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function AdminDashboard() {
   const isMobile = window.innerWidth <= 768;
@@ -10,7 +11,7 @@ function AdminDashboard() {
   const [donations, setDonations] = useState([]);
   const [media, setMedia] = useState([]);
   const [users, setUsers] = useState([]);
-  const [stats, setStats] = useState({totalDonations: 0,recentDonations: 0, mediaCount: 0, userCount: 0});
+  const [stats, setStats] = useState({ totalDonations: 0, recentDonations: 0, mediaCount: 0, userCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ function AdminDashboard() {
       try {
         const token = localStorage.getItem('adminToken');
         if (!token) {
-          navigate('/admin-login');
+          // navigate('/admin-login');
           return;
         }
 
@@ -141,49 +142,36 @@ function AdminDashboard() {
           'Content-Type': 'application/json'
         };
 
-        const [donationsRes, mediaRes, usersRes] = await Promise.all([
-          fetch('https://menna.onrender.com/api/admin/donations',
-             { headers }
-            ),  
-            fetch('https://menna.onrender.com/api/admin/media',
-             { headers }
-            ), 
-             fetch('https://menna.onrender.com/api/admin/users',
-             { headers }
-            ),
-          // fetch(`${API_BASE_URL}/Admin/media`,
-          //   //  { headers }
+        // Fetch dashboard stats
+        const statsRes = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`, { headers });
+        if (!statsRes.ok) throw new Error('Failed to fetch dashboard stats');
+        const statsData = await statsRes.json();
+        setStats(statsData);
 
-          // ),
-          // fetch(`${API_BASE_URL}/admin/users`, 
-          //   // { headers }
-          // )
-        ]);
-
-        if (!donationsRes.ok || !mediaRes.ok || !usersRes.ok) {
-          throw new Error('Failed to fetch data');
-        }
-
+        // Fetch donations with a high limit to get all records
+        const donationsRes = await fetch(`${API_BASE_URL}/api/admin/donations?limit=1000`, { headers });
+        if (!donationsRes.ok) throw new Error('Failed to fetch donations');
         const donationsData = await donationsRes.json();
+        setDonations(donationsData.donations || []);
+
+        // Fetch media with a high limit to get all records
+        const mediaRes = await fetch(`${API_BASE_URL}/api/admin/media?limit=1000`, { headers });
+        if (!mediaRes.ok) throw new Error('Failed to fetch media');
         const mediaData = await mediaRes.json();
+        setMedia(mediaData.media || []);
+
+        // Fetch users with a high limit to get all records
+        const usersRes = await fetch(`${API_BASE_URL}/api/admin/users?limit=1000`, { headers });
+        if (!usersRes.ok) throw new Error('Failed to fetch users');
         const usersData = await usersRes.json();
-
-        setDonations(donationsData);
-        setMedia(mediaData);
-        setUsers(usersData);
-
-        setStats({
-          totalDonations: donationsData.reduce((sum, d) => sum + d.amount, 0),
-          recentDonations: donationsData.slice(0, 5).reduce((sum, d) => sum + d.amount, 0),
-          mediaCount: mediaData.length,
-          userCount: usersData.length
-        });
+        setUsers(usersData.users || []);
 
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching data:', err);
         setError(err.message);
         setLoading(false);
-        if (err.message.includes('Unauthorized')) {
+        if (err.message.includes('Unauthorized') || err.message.includes('401')) {
           localStorage.removeItem('adminToken');
           navigate('/admin-login');
         }
@@ -191,18 +179,18 @@ function AdminDashboard() {
     };
 
     fetchData();
-  }, [navigate]);
+  }, [navigate, API_BASE_URL]);
 
   const handleLogout = () => {
-    // localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminToken');
     navigate('/admin-login');
   };
 
   const renderContent = () => {
-    if (loading) return <div style={loadingSpinnerStyle}>Loading...</div>;
-    if (error) return <div style={errorMessageStyle}>{error}</div>;
+    // if (loading) return <div style={loadingSpinnerStyle}>Loading...</div>;
+    // if (error) return <div style={errorMessageStyle}>{error}</div>;
 
-    switch(activeTab) {
+    switch (activeTab) {
       case 'donations':
         return <DonationsTab donations={donations} setDonations={setDonations} isMobile={isMobile} />;
       case 'media':
@@ -220,49 +208,49 @@ function AdminDashboard() {
     <div style={containerStyle}>
       <aside style={sidebarStyle}>
         <h2 style={logoStyle}>Admin Dashboard</h2>
-        
+
         <nav style={navStyle}>
-          <button 
+          <button
             style={activeTab === 'dashboard' ? activeNavButtonStyle : navButtonStyle}
             onClick={() => setActiveTab('dashboard')}
           >
             <FaChartLine style={iconStyle} /> Dashboard
           </button>
-          
-          <button 
+
+          <button
             style={activeTab === 'donations' ? activeNavButtonStyle : navButtonStyle}
             onClick={() => setActiveTab('donations')}
           >
             <FaDonate style={iconStyle} /> Donations
           </button>
-          
-          <button 
+
+          <button
             style={activeTab === 'media' ? activeNavButtonStyle : navButtonStyle}
             onClick={() => setActiveTab('media')}
           >
             <FaImages style={iconStyle} /> Media
           </button>
-          
-          <button 
+
+          <button
             style={activeTab === 'users' ? activeNavButtonStyle : navButtonStyle}
             onClick={() => setActiveTab('users')}
           >
             <FaUsers style={iconStyle} /> Users
           </button>
 
-          <button 
+          <button
             style={activeTab === 'analytics' ? activeNavButtonStyle : navButtonStyle}
             onClick={() => setActiveTab('analytics')}
           >
             <FaChartLine style={iconStyle} /> Analytics
           </button>
         </nav>
-        
+
         <button style={logoutButtonStyle} onClick={handleLogout}>
           <FaSignOutAlt style={iconStyle} /> Logout
         </button>
       </aside>
-      
+
       <main style={mainContentStyle}>
         {renderContent()}
       </main>
@@ -312,18 +300,18 @@ function DashboardOverview({ stats, donations, media, isMobile }) {
   return (
     <div style={overviewStyle}>
       <h2>Dashboard Overview</h2>
-      
+
       <div style={statsGridStyle}>
         <div style={statCardStyle}>
           <h3>Total Donations</h3>
           <p style={statValueStyle}>${stats.totalDonations.toLocaleString()}</p>
         </div>
-        
+
         <div style={statCardStyle}>
           <h3>Recent Donations</h3>
           <p style={statValueStyle}>${stats.recentDonations.toLocaleString()}</p>
         </div>
-        
+
         <div style={statCardStyle}>
           <h3>Media Items</h3>
           <p style={statValueStyle}>{stats.mediaCount}</p>
@@ -334,12 +322,12 @@ function DashboardOverview({ stats, donations, media, isMobile }) {
           <p style={statValueStyle}>{stats.userCount}</p>
         </div>
       </div>
-      
+
       <div style={sectionStyle}>
         <h3>Recent Donations</h3>
         <DonationsTable donations={donations.slice(0, 5)} isMobile={isMobile} />
       </div>
-      
+
       <div style={sectionStyle}>
         <h3>Recent Media</h3>
         <MediaGrid media={media.slice(0, 4)} isMobile={isMobile} />
@@ -370,7 +358,9 @@ function DonationsTab({ donations, setDonations, isMobile }) {
   const filterButtonStyle = {
     padding: '0.5rem 1rem',
     backgroundColor: '#f8f9fa',
-    border: '1px solid #ddd',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: '#ddd',
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '0.85rem',
@@ -426,14 +416,14 @@ function DonationsTab({ donations, setDonations, isMobile }) {
     fontSize: '0.8rem',
     fontWeight: '500',
     textTransform: 'capitalize',
-    backgroundColor: 
-      status === 'completed' ? '#d4edda' : 
-      status === 'pending' ? '#fff3cd' : 
-      status === 'failed' ? '#f8d7da' : '#e2e3e5',
-    color: 
-      status === 'completed' ? '#155724' : 
-      status === 'pending' ? '#856404' : 
-      status === 'failed' ? '#721c24' : '#383d41'
+    backgroundColor:
+      status === 'completed' ? '#d4edda' :
+        status === 'pending' ? '#fff3cd' :
+          status === 'failed' ? '#f8d7da' : '#e2e3e5',
+    color:
+      status === 'completed' ? '#155724' :
+        status === 'pending' ? '#856404' :
+          status === 'failed' ? '#721c24' : '#383d41'
   });
 
   const actionButtonsStyle = {
@@ -495,8 +485,8 @@ function DonationsTab({ donations, setDonations, isMobile }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      
-      const res = await fetch(`https://asremenaapp.onrender.com/api/admin/donations/${id}`, {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/donations/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -504,9 +494,9 @@ function DonationsTab({ donations, setDonations, isMobile }) {
         },
         body: JSON.stringify({ status })
       });
-      
+
       if (!res.ok) throw new Error('Failed to update donation');
-      
+
       const updated = await res.json();
       setDonations(donations.map(d => d._id === updated._id ? updated : d));
     } catch (err) {
@@ -516,14 +506,14 @@ function DonationsTab({ donations, setDonations, isMobile }) {
     }
   };
 
-  const filteredDonations = donations.filter(d => 
+  const filteredDonations = donations.filter(d =>
     filter === 'all' || d.status === filter
   );
 
   return (
     <div style={tabStyle}>
       <h2>Donation Management</h2>
-      
+
       <div style={filterBarStyle}>
         {['all', 'pending', 'completed', 'failed'].map(f => (
           <button
@@ -535,9 +525,9 @@ function DonationsTab({ donations, setDonations, isMobile }) {
           </button>
         ))}
       </div>
-      
+
       {error && <div style={errorMessageStyle}>{error}</div>}
-      
+
       <div style={tableContainerStyle}>
         <table style={tableStyle}>
           <thead>
@@ -568,14 +558,14 @@ function DonationsTab({ donations, setDonations, isMobile }) {
                 <td style={tdStyle}>
                   {donation.status === 'pending' && (
                     <div style={actionButtonsStyle}>
-                      <button 
+                      <button
                         onClick={() => updateStatus(donation._id, 'completed')}
                         style={successButtonStyle}
                         disabled={loading}
                       >
                         <FaCheck /> Complete
                       </button>
-                      <button 
+                      <button
                         onClick={() => updateStatus(donation._id, 'failed')}
                         style={dangerButtonStyle}
                         disabled={loading}
@@ -590,7 +580,7 @@ function DonationsTab({ donations, setDonations, isMobile }) {
           </tbody>
         </table>
       </div>
-      
+
       <div style={statsCardStyle}>
         <h3>Donation Summary</h3>
         <div style={summaryGridStyle}>
@@ -778,8 +768,8 @@ function MediaTab({ media, setMedia, isMobile }) {
       setIsUploading(true);
       setUploadError('');
       const token = localStorage.getItem('adminToken');
-      
-      const res = await fetch('https://asremenaapp.onrender.com/api/admin/media', {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/media`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -806,16 +796,16 @@ function MediaTab({ media, setMedia, isMobile }) {
     try {
       setDeleteLoading(true);
       const token = localStorage.getItem('adminToken');
-      
-      const res = await fetch(`https://asremenaapp.onrender.com/api/admin/media/${id}`, {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/media/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!res.ok) throw new Error('Failed to delete media');
-      
+
       setMedia(media.filter(item => item._id !== id));
     } catch (err) {
       setUploadError(err.message);
@@ -827,7 +817,7 @@ function MediaTab({ media, setMedia, isMobile }) {
   return (
     <div style={tabStyle}>
       <h2>Media Management</h2>
-      
+
       <div style={uploadFormStyle}>
         <h3>Upload New Media</h3>
         {uploadError && <div style={errorMessageStyle}>{uploadError}</div>}
@@ -842,7 +832,7 @@ function MediaTab({ media, setMedia, isMobile }) {
               required
             />
           </div>
-          
+
           <div style={formGroupStyle}>
             <label htmlFor="description" style={labelStyle}>Description (optional):</label>
             <textarea
@@ -851,7 +841,7 @@ function MediaTab({ media, setMedia, isMobile }) {
               style={textareaStyle}
             />
           </div>
-          
+
           <div style={formGroupStyle}>
             <label htmlFor="file" style={labelStyle}>File:</label>
             <input
@@ -862,22 +852,22 @@ function MediaTab({ media, setMedia, isMobile }) {
               required
             />
           </div>
-          
+
           <button type="submit" disabled={isUploading} style={primaryButtonStyle}>
             {isUploading ? 'Uploading...' : 'Upload Media'}
           </button>
         </form>
       </div>
-      
+
       <div style={mediaSectionStyle}>
         <h3>All Media ({media.length})</h3>
         <div style={mediaGridStyle}>
           {media.map(item => (
             <div key={item._id} style={mediaCardStyle}>
               {item.type === 'image' ? (
-                <img 
-                  src={`https://asremenaapp.onrender.com/api/admin${item.url}`} 
-                  alt={item.title} 
+                <img
+                  src={`${API_BASE_URL}${item.url}`}
+                  alt={item.title}
                   style={mediaThumbnailStyle}
                 />
               ) : item.type === 'video' ? (
@@ -889,7 +879,7 @@ function MediaTab({ media, setMedia, isMobile }) {
                   <FaFileAlt size={48} />
                 </div>
               )}
-              
+
               <div style={mediaInfoStyle}>
                 <h4>{item.title}</h4>
                 <p>{item.description}</p>
@@ -898,8 +888,8 @@ function MediaTab({ media, setMedia, isMobile }) {
                   <span>{(item.size / 1024).toFixed(1)} KB</span>
                   <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => handleDelete(item._id)}
                   style={dangerButtonStyle}
                   disabled={deleteLoading}
@@ -1058,8 +1048,8 @@ function UsersTab({ users, setUsers, isMobile }) {
       setLoading(true);
       setError('');
       const token = localStorage.getItem('adminToken');
-      
-      const res = await fetch('https://asremenaapp.onrender.com/api/admin/users', {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1067,7 +1057,7 @@ function UsersTab({ users, setUsers, isMobile }) {
         },
         body: JSON.stringify(newUser)
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to create user');
@@ -1091,16 +1081,16 @@ function UsersTab({ users, setUsers, isMobile }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('adminToken');
-      
-      const res = await fetch(`https://asremenaapp.onrender.com/api/admin/users/${id}`, {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!res.ok) throw new Error('Failed to delete user');
-      
+
       setUsers(users.filter(user => user._id !== id));
     } catch (err) {
       setError(err.message);
@@ -1112,7 +1102,7 @@ function UsersTab({ users, setUsers, isMobile }) {
   return (
     <div style={tabStyle}>
       <h2>User Management</h2>
-      
+
       <div style={userFormStyle}>
         <h3>Create New User</h3>
         {error && <div style={errorMessageStyle}>{error}</div>}
@@ -1123,43 +1113,43 @@ function UsersTab({ users, setUsers, isMobile }) {
               type="text"
               id="username"
               value={newUser.username}
-              onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+              onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
               style={inputStyle}
               required
             />
           </div>
-          
+
           <div style={formGroupStyle}>
             <label htmlFor="password" style={labelStyle}>Password:</label>
             <input
               type="password"
               id="password"
               value={newUser.password}
-              onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
               style={inputStyle}
               required
             />
           </div>
-          
+
           <div style={formGroupStyle}>
             <label htmlFor="role" style={labelStyle}>Role:</label>
             <select
               id="role"
               value={newUser.role}
-              onChange={(e) => setNewUser({...newUser, role: e.target.value})}
+              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
               style={selectStyle}
             >
               <option value="editor">Editor</option>
               <option value="admin">Admin</option>
             </select>
           </div>
-          
+
           <button type="submit" disabled={loading} style={primaryButtonStyle}>
             {loading ? 'Creating...' : 'Create User'}
           </button>
         </form>
       </div>
-      
+
       <div style={usersListStyle}>
         <h3>All Users ({users.length})</h3>
         <div style={tableContainerStyle}>
@@ -1183,7 +1173,7 @@ function UsersTab({ users, setUsers, isMobile }) {
                   </td>
                   <td style={tdStyle}>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td style={tdStyle}>
-                    <button 
+                    <button
                       onClick={() => deleteUser(user._id)}
                       disabled={loading || user.role === 'admin'}
                       style={dangerButtonStyle}
@@ -1264,34 +1254,34 @@ function AnalyticsTab({ stats, donations, isMobile }) {
   return (
     <div style={tabStyle}>
       <h2>Analytics Dashboard</h2>
-      
+
       <div style={statsGridStyle}>
         <div style={statCardStyle}>
           <h3>Total Donations</h3>
           <p style={statValueStyle}>${stats.totalDonations.toLocaleString()}</p>
         </div>
-        
+
         <div style={statCardStyle}>
           <h3>Monthly Donations</h3>
           <p style={statValueStyle}>${
             donations
-              .filter(d => new Date(d.createdAt) > new Date(Date.now() - 30*24*60*60*1000))
+              .filter(d => new Date(d.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
               .reduce((sum, d) => sum + d.amount, 0)
               .toLocaleString()
           }</p>
         </div>
-        
+
         <div style={statCardStyle}>
           <h3>Weekly Donations</h3>
           <p style={statValueStyle}>${
             donations
-              .filter(d => new Date(d.createdAt) > new Date(Date.now() - 7*24*60*60*1000))
+              .filter(d => new Date(d.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
               .reduce((sum, d) => sum + d.amount, 0)
               .toLocaleString()
           }</p>
         </div>
       </div>
-      
+
       <div style={chartContainerStyle}>
         <h3>Donations Over Time</h3>
         <div style={chartPlaceholderStyle}>
@@ -1299,7 +1289,7 @@ function AnalyticsTab({ stats, donations, isMobile }) {
           <p>Chart visualization would appear here</p>
         </div>
       </div>
-      
+
       <div style={statCardStyle}>
         <h3>Donation Sources</h3>
         <div style={summaryGridStyle}>
@@ -1347,14 +1337,14 @@ function DonationsTable({ donations, isMobile }) {
     borderRadius: '4px',
     fontSize: '0.8rem',
     fontWeight: '500',
-    backgroundColor: 
-      status === 'completed' ? '#d4edda' : 
-      status === 'pending' ? '#fff3cd' : 
-      status === 'failed' ? '#f8d7da' : '#e2e3e5',
-    color: 
-      status === 'completed' ? '#155724' : 
-      status === 'pending' ? '#856404' : 
-      status === 'failed' ? '#721c24' : '#383d41'
+    backgroundColor:
+      status === 'completed' ? '#d4edda' :
+        status === 'pending' ? '#fff3cd' :
+          status === 'failed' ? '#f8d7da' : '#e2e3e5',
+    color:
+      status === 'completed' ? '#155724' :
+        status === 'pending' ? '#856404' :
+          status === 'failed' ? '#721c24' : '#383d41'
   });
 
   return (
@@ -1429,9 +1419,9 @@ function MediaGrid({ media, isMobile }) {
       {media.map(item => (
         <div key={item._id} style={cardStyle}>
           {item.type === 'image' ? (
-            <img 
-              src={`https://asremenaapp.onrender.com/api/admin${item.url}`} 
-              alt={item.title} 
+            <img
+              src={`${API_BASE_URL}${item.url}`}
+              alt={item.title}
               style={thumbnailStyle}
             />
           ) : item.type === 'video' ? (
@@ -1443,7 +1433,7 @@ function MediaGrid({ media, isMobile }) {
               <FaFileAlt size={48} />
             </div>
           )}
-          
+
           <div style={infoStyle}>
             <h4>{item.title}</h4>
             <p>{item.description}</p>
